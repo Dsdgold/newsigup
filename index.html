@@ -1,0 +1,1573 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kalkulator SIGup — ULTRA</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b1220">
+<style>
+:root{
+  --bg: #0b1220;
+  --bg2: #0d1628;
+  --fg: #e5e7eb;
+  --muted:#94a3b8;
+  --ring:#60a5fa;
+  --card: rgba(17,24,39,0.55);
+  --card-b: rgba(148,163,184,0.25);
+  --border: rgba(148,163,184,0.25);
+  --accent1: #4f46e5; /* indigo-600 */
+  --accent2: #06b6d4; /* cyan-500 */
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+; font-size:14px;}
+:root.light{
+  --bg:#f5f7fb;
+  --bg2:#eef2f7;
+  --fg:#0f172a;
+  --muted:#64748b;
+  --ring:#0ea5e9;
+  --card: rgba(255,255,255,0.65);
+  --card-b: rgba(59,130,246,0.25);
+  --border: rgba(2,6,23,0.08);
+}
+
+/* Responsywne ulepszenia mobilne */
+@media (max-width:600px){
+  /* Stosuj układ kolumnowy dla elementów akcji */
+  .actions{flex-direction:column;gap:10px}
+  .actions .input{width:100%}
+  .btn{width:100%}
+  .table{font-size:14px; overflow-x:auto}
+  .rows{gap:8px}
+}
+
+/* Base */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;color:var(--fg);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(79,70,229,0.28), transparent 60%),
+    radial-gradient(1200px 500px at 90% 0%, rgba(6,182,212,0.22), transparent 60%),
+    linear-gradient(180deg, var(--bg2), var(--bg));
+}
+.container{max-width:1280px;margin:24px auto;padding:0 16px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:28px;height:28px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.kbd{font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;border:1px solid var(--border);padding:2px 6px;border-radius:6px;background:rgba(148,163,184,0.12);color:var(--fg)}
+
+/* Cards */
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius:16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.18);
+  backdrop-filter: blur(10px);
+  overflow:hidden;
+}
+.card-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-weight:700}
+.card-c{padding:14px 16px}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+@media (max-width:1000px){ .grid{grid-template-columns:1fr} }
+
+/* Responsive subgrid for WSAD / PDF / Użyteczne cards */
+/* Subgrid now contains two cards (Oferta PDF and Użyteczne). Use two columns on larger screens and a single column on small screens. */
+.subgrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:16px;
+}
+@media (max-width:1000px){
+  .subgrid{ grid-template-columns:1fr; }
+}
+
+/* Inputs */
+.input{
+  padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,0.04);color:var(--fg);
+  outline:none;min-width:0;transition:border-color .15s, box-shadow .15s, background .15s;
+}
+.input:focus-visible{box-shadow:0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent);border-color:var(--ring)}
+.input[disabled]{opacity:.6}
+.select{appearance:none}
+
+/* Buttons */
+.btn{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--fg);cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:transform .08s ease, background .2s, border .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn svg{width:18px;height:18px}
+.btn.primary{
+  border:0;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  color:#fff;
+  box-shadow: 0 8px 24px rgba(79,70,229,.35), 0 2px 8px rgba(6,182,212,.35);
+}
+
+/* Badges, switches */
+.badge{background:rgba(148,163,184,0.15);border:1px solid var(--border);padding:4px 10px;border-radius:999px;font-size:12px;color:var(--fg)}
+.switch{display:inline-flex;gap:8px;align-items:center}
+.switch input{appearance:none;width:46px;height:26px;background:rgba(148,163,184,.35);border:1px solid var(--border);border-radius:999px;position:relative;outline:none;cursor:pointer;transition:.2s}
+.switch input:checked{background:rgba(34,197,94,.35)}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.35);transition:.2s}
+.switch input:checked::after{left:24px}
+
+/* Table */
+.table-wrap{overflow:visible}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
+th{background:linear-gradient(180deg, rgba(148,163,184,0.16), rgba(148,163,184,0.10));position:sticky;top:0;z-index:1}
+tbody tr:hover{background:rgba(148,163,184,0.08)}
+.right{text-align:right}
+/* Highlight reward value more prominently: unify money class and enlarge font for reward values */
+.money{
+  color: var(--green);
+  font-weight: 900;
+  font-size: 18px;
+}
+.table-wrap thead th:last-child{
+  color: var(--green);
+  font-weight: 700;
+}
+.muted{color:var(--muted);font-size:12px}
+
+/* Product lines body and rows. Use grid layout for each row to align with header columns.
+   Each row has eight columns: remove button, index, brand, product, rate, amount, points, value.
+   This ensures multiple rows remain visible with vertical scrolling. */
+.lines-body{
+  /* Use a fixed height so multiple rows are visible and a vertical scrollbar appears when necessary */
+  height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+@media (max-width: 600px){
+  /* On very small screens reduce the height to leave more room for other cards */
+  .lines-body{ height: 240px; }
+}
+.lines-body .line{
+  display: grid;
+  /* Removed the punkty/1000 (rate) column to hide this internal value from the UI.
+     Columns now are: remove‑button, indeks, marka, produkt, kwota netto, punkty (pozycja), nagroda. */
+  grid-template-columns: 2.5rem 6rem 6rem 1fr 11rem 5rem 6rem;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.lines-body .line:hover{
+  background: rgba(148,163,184,0.08);
+}
+.lines-body .line > div:not(:first-child){
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* Allow the amount (kwota) column to show full input without truncation */
+.lines-body .line > div:nth-child(5){
+  /* The kwota netto input sits in the 5th column after removing the rate column. */
+  overflow: visible;
+  white-space: nowrap;
+}
+}
+.lines-body .line .right{
+  text-align: right;
+}
+.lines-body .line .money{
+  color: var(--green);
+  font-weight: 900;
+  /* match the enlarged money font size globally */
+  font-size: 18px;
+}
+.lines-body .line .muted{
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Progress */
+.progress{height:8px;background:rgba(148,163,184,0.25);border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg, var(--accent1), var(--accent2));width:0%}
+
+/* Toast */
+.toast{position:fixed;right:16px;bottom:16px;background:rgba(2,6,23,.9);color:#fff;padding:12px 14px;border-radius:12px;opacity:0;transform:translateY(12px);transition:all .25s;backdrop-filter: blur(8px);border:1px solid rgba(148,163,184,.25)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Voice advisor modal */
+dialog::backdrop{background:rgba(15,23,42,0.55);backdrop-filter:blur(6px)}
+.advisor-dialog{border:none;border-radius:16px;padding:0;max-width:640px;width:90vw;background:var(--card);color:var(--fg);box-shadow:0 18px 48px rgba(15,23,42,0.35);}
+.advisor-shell{display:flex;flex-direction:column;gap:12px;padding:16px}
+.advisor-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.advisor-header-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.advisor-history{min-height:160px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
+.advisor-entry{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(148,163,184,0.08);line-height:1.4}
+.advisor-entry.assistant{background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.35)}
+.advisor-entry.user{background:rgba(79,70,229,0.12);border-color:rgba(79,70,229,0.35)}
+.advisor-recos{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto}
+.advisor-reco{border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;background:rgba(148,163,184,0.05)}
+.advisor-reco-details{flex:1}
+.advisor-reco strong{display:block;font-size:14px}
+.advisor-reco .muted{margin-top:4px}
+.advisor-input-row{display:flex;gap:8px;align-items:stretch}
+.advisor-input-row textarea{flex:1;min-height:72px;resize:vertical}
+.advisor-footer{display:flex;flex-direction:column;gap:12px}
+.advisor-footer-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.advisor-empty{padding:12px;border-radius:12px;border:1px dashed var(--border);text-align:center}
+.advisor-mic-active{box-shadow:0 0 0 3px color-mix(in oklab, var(--accent2) 45%, transparent);}
+@media (max-width:600px){
+  .advisor-dialog{width:96vw;max-width:96vw;padding:0}
+  .advisor-shell{padding:14px}
+  .advisor-history{min-height:120px;max-height:200px}
+}
+
+/* Remove button styling for row deletion */
+.remove-btn{
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--red);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.remove-btn svg{
+  width: 16px;
+  height: 16px;
+}
+.remove-btn:hover{ opacity:0.8; }
+
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted)}
+hr.sep{border:none;border-top:1px dashed var(--border);margin:10px 0}
+</style>
+</head>
+<body class="dark">
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h16M4 12c2.5-5 5.5-7.5 8-7.5S17.5 7 20 12m-8 7.5c2.5 0 5.5-2.5 8-7.5" stroke="url(#g)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24"><stop stop-color="#4f46e5"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs></svg>
+      <h1 style="margin:0;font-size:22px">Kalkulator SIGup — ULTRA</h1>
+      <span class="badge" id="meta">inicjalizacja…</span>
+    </div>
+    <div class="actions">
+      <button id="btn-theme" class="btn" type="button" title="Tryb jasny/ciemny">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v2m0 14v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M3 12h2m14 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41M12 7a5 5 0 1 0 0 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Motyw
+      </button>
+      <button id="btn-export" class="btn" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0 4 4m-4-4-4 4M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Eksport CSV
+      </button>
+      <button id="btn-export-pdf" class="btn" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM13 3.5L18.5 9H14a1 1 0 0 1-1-1V3.5zM9 14h6v-2H9v2zm0 4h6v-2H9v2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        Eksport PDF
+      </button>
+      <button id="btn-share" class="btn" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none"><path d="M7 12a5 5 0 1 1 0-2m10 2a5 5 0 1 0 0-2M8 12l8-4m0 8-8-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Kopiuj link
+      </button>
+      <button id="btn-reset" class="btn" type="button" title="Wyczyść wszystko">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16M7 4v14a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Wyczyść
+      </button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-h">
+        <span>Szukaj i dodawaj pozycje</span>
+        <div class="chips hint">Skróty: <span class="kbd">Enter</span> dodaje • <span class="kbd">Ctrl</span>+<span class="kbd">K</span> fokus</div>
+      </div>
+      <div class="card-c">
+        <div class="actions" style="gap:10px">
+          <input id="q" class="input" placeholder="Szukaj po indeksie, marce lub nazwie produktu" style="flex:1;min-width:280px" list="idxlist" autocomplete="off">
+          <datalist id="idxlist"></datalist>
+          <button id="btn-add" class="btn primary" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14m-7-7h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            Dodaj
+          </button>
+        </div>
+
+    <!-- Table header and lines body. The header remains in a table for sticky columns, while the body uses a grid-based list. -->
+    <div class="table-wrap" id="lines-wrap" style="margin-top:12px;">
+          <table id="tbl-lines">
+            <thead>
+              <tr>
+                <th style="width:2.5rem"></th>
+                <th style="width:6rem">Indeks</th>
+                <th style="width:6rem">Marka</th>
+                <th>Produkt</th>
+                <th style="width:11rem;text-align:center">Kwota netto [PLN]</th>
+                <th class="right" style="width:5rem">Punkty <span class="muted">(pozycja)</span></th>
+                <th class="right" style="width:6rem">Wartość nagrody [PLN]</th>
+              </tr>
+            </thead>
+          </table>
+          <div id="lines" class="lines-body">
+            <div class="muted lines-empty" style="text-align:center;padding:8px 0">Brak pozycji.</div>
+          </div>
+        </div>
+
+        <details style="margin-top:10px">
+          <summary><strong>Dodaj hurtowo</strong></summary>
+          <div style="margin-top:8px">
+            <textarea id="bulk" class="input" style="width:100%;height:120px" placeholder="INDEKS;KWOTA lub INDEKS KWOTA. Jedna pozycja na linię."></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="btn" id="btn-bulk">Dodaj z listy</button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">Podsumowanie</div>
+      <div class="card-c">
+        <div class="actions" style="justify-content:flex-end;margin-bottom:12px">
+          <button id="btn-voice-advisor" class="btn" type="button" title="Porozmawiaj z doradcą">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0m-7 7v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Doradca głosowy
+          </button>
+        </div>
+        <div class="actions" style="gap:16px;align-items:flex-end">
+          <div>
+            <label>Zakupy ecommerce</label>
+            <div class="actions" style="gap:8px">
+              <input id="ecom" class="input" inputmode="decimal" style="width:160px;text-align:right" placeholder="Kwota 0">
+              <span class="badge">10 pkt / 1000</span>
+              <!-- Buttons to quickly set ecommerce as 0%, 50% or 100% of the sum of net amounts -->
+              <button type="button" id="btn-ecom-0" class="btn" style="padding:6px 8px;font-size:12px;">0%</button>
+              <button type="button" id="btn-ecom-50" class="btn" style="padding:6px 8px;font-size:12px;">50%</button>
+              <button type="button" id="btn-ecom-100" class="btn" style="padding:6px 8px;font-size:12px;">100%</button>
+            </div>
+            <div class="hint" style="margin-top:6px">Pełne tysiące. Zaokrąglenie w dół.</div>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead><tr>
+              <th>Marka</th><th class="right">Suma kwot [PLN]</th>
+              <th class="right">Punkty marki</th><th class="right">Wartość nagrody [PLN]</th>
+            </tr></thead>
+            <tbody id="summary"><tr><td colspan="4" class="muted" style="text-align:center">Brak danych.</td></tr></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="progress" aria-hidden="true"><div id="prog"></div></div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <span class="badge" id="totals">0 pkt · 0,00 PLN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="subgrid" >
+    <!-- WSAD data card removed for regular users. Dataset is included via wsad.json -->
+
+    <!-- PDF import card: allows reading a PDF offer and converting items into rows -->
+    <div class="card">
+      <div class="card-h">Oferta PDF → pozycje</div>
+      <div class="card-c">
+        <div class="actions" style="align-items:flex-start">
+          <input id="offer" type="file" accept=".pdf" class="input" style="flex:1" onchange="handleOfferChange(this)">
+          <button id="btn-offer" class="btn" type="button" onclick="handleOfferClick()">Wczytaj PDF</button>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          Wczyta indeksy i kwoty netto i przeliczy wg stawek marki.
+        </div>
+      </div>
+    </div>
+
+    <!-- Sekcja 'Użyteczne' usunięta -->
+  </div>
+</div>
+
+  <!-- Wbudowany zestaw danych wsad w razie braku pliku wsad.json -->
+  <script>
+  window.builtinWsad = [
+    {"indeks": "A1234", "marka": "MARCA1", "nazwa": "Beton B20", "punktyNa1000": 100},
+    {"indeks": "B2345", "marka": "MARCA2", "nazwa": "Cement CEM I", "punktyNa1000": 200},
+    {"indeks": "C3456", "marka": "MARCA3", "nazwa": "Płyta g-k 12.5mm", "punktyNa1000": 150},
+    {"indeks": "D4567", "marka": "MARCA1", "nazwa": "Bloczek silikatowy", "punktyNa1000": 180},
+    {"indeks": "E5678", "marka": "MARCA4", "nazwa": "Styropian 10 cm", "punktyNa1000": 120}
+  ];
+  </script>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<dialog id="advisor-dialog" class="advisor-dialog">
+  <form method="dialog" class="advisor-shell">
+    <header class="advisor-header">
+      <div>
+        <strong>Doradca głosowy</strong>
+        <div class="hint">Zadaj pytanie głosowo lub tekstowo</div>
+      </div>
+      <div class="advisor-header-actions">
+        <button type="button" id="advisor-mic" class="btn" title="Rozpocznij lub zatrzymaj nasłuchiwanie">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0m-7 7v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Start</span>
+        </button>
+        <button type="button" id="advisor-stop" class="btn" title="Przerwij rozmowę">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6h12v12H6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          Stop
+        </button>
+        <button type="button" id="advisor-close" class="btn" title="Zamknij okno">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Zamknij
+        </button>
+      </div>
+    </header>
+    <section id="advisor-history" class="advisor-history" aria-live="polite"></section>
+    <section id="advisor-recos" class="advisor-recos"></section>
+    <div class="advisor-input-row">
+      <textarea id="advisor-input" class="input" placeholder="Opisz cel, np. &quot;Potrzebuję 500 pkt w marce X w budżecie 3000&quot;"></textarea>
+      <button type="button" id="advisor-send" class="btn primary">Wyślij</button>
+    </div>
+    <footer class="advisor-footer">
+      <div class="hint">Wybierz propozycje poniżej, aby dodać je do koszyka.</div>
+      <div class="advisor-footer-actions">
+        <button type="button" id="advisor-add-selected" class="btn" disabled>Dodaj wybrane</button>
+        <button type="button" id="advisor-add-all" class="btn primary" disabled>Dodaj wszystko</button>
+      </div>
+    </footer>
+  </form>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmtPLN = new Intl.NumberFormat('pl-PL', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtINT = new Intl.NumberFormat('pl-PL', {maximumFractionDigits:0});
+const NF = (v) => (isFinite(v)?v:0);
+const parseNumber = v => {
+  if (v==null) return 0;
+  if (typeof v==='number') return isFinite(v)?v:0;
+  const s=String(v).trim().replace(/\s+/g,'').replace(/,/g,'.');
+  const n=parseFloat(s); return isNaN(n)?0:n;
+};
+const K = s => String(s||'').toLowerCase().replace(/\s+/g,'').replaceAll('_','');
+
+// Truncate a string by Unicode characters (to avoid breaking multi-byte characters).
+// Returns at most `max` visible characters from the start of the string.
+const truncate = (str, max=30) => {
+  const chars = Array.from(String(str || ''));
+  return chars.slice(0, max).join('');
+};
+
+function toast(m, ms=1600){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms); }
+
+const voiceAdvisorState = {
+  recognition: null,
+  listening: false,
+  mediaStream: null,
+  voice: null,
+  history: [],
+  currentRecommendations: [],
+  modal: null,
+  historyEl: null,
+  recosEl: null,
+  inputEl: null,
+  micBtn: null,
+  addAllBtn: null,
+  addSelectedBtn: null
+};
+
+function updateAdvisorMic(){
+  if (!voiceAdvisorState.micBtn) return;
+  const label = voiceAdvisorState.micBtn.querySelector('span');
+  if (voiceAdvisorState.listening){
+    voiceAdvisorState.micBtn.classList.add('advisor-mic-active');
+    voiceAdvisorState.micBtn.setAttribute('aria-pressed', 'true');
+    if (label) label.textContent = 'Słucham…';
+  } else {
+    voiceAdvisorState.micBtn.classList.remove('advisor-mic-active');
+    voiceAdvisorState.micBtn.setAttribute('aria-pressed', 'false');
+    if (label) label.textContent = 'Start';
+  }
+}
+
+function updateAdvisorHistory(){
+  if (!voiceAdvisorState.historyEl) return;
+  voiceAdvisorState.historyEl.innerHTML = '';
+  if (!voiceAdvisorState.history.length){
+    const info = document.createElement('div');
+    info.className = 'advisor-empty';
+    info.textContent = 'Brak historii. Zadaj pytanie głosowo lub wpisz je poniżej.';
+    voiceAdvisorState.historyEl.appendChild(info);
+    return;
+  }
+  for (const entry of voiceAdvisorState.history){
+    const wrapper = document.createElement('div');
+    wrapper.className = `advisor-entry ${entry.role}`;
+    const label = document.createElement('div');
+    label.className = 'muted';
+    label.textContent = entry.role === 'user' ? 'Ty' : 'Doradca';
+    const body = document.createElement('div');
+    body.textContent = entry.text;
+    wrapper.appendChild(label);
+    wrapper.appendChild(body);
+    voiceAdvisorState.historyEl.appendChild(wrapper);
+  }
+  voiceAdvisorState.historyEl.scrollTop = voiceAdvisorState.historyEl.scrollHeight;
+}
+
+function updateAdvisorSelectionState(){
+  if (!voiceAdvisorState.addSelectedBtn) return;
+  const anyChecked = !!voiceAdvisorState.recosEl?.querySelector('input[type="checkbox"]:checked');
+  voiceAdvisorState.addSelectedBtn.disabled = !anyChecked;
+  voiceAdvisorState.addAllBtn && (voiceAdvisorState.addAllBtn.disabled = voiceAdvisorState.currentRecommendations.length === 0);
+}
+
+function updateAdvisorRecommendations(){
+  if (!voiceAdvisorState.recosEl) return;
+  voiceAdvisorState.recosEl.innerHTML = '';
+  if (!voiceAdvisorState.currentRecommendations.length){
+    const info = document.createElement('div');
+    info.className = 'advisor-empty';
+    info.textContent = 'Brak rekomendacji. Zadaj kolejne pytanie, aby kontynuować rozmowę.';
+    voiceAdvisorState.recosEl.appendChild(info);
+    updateAdvisorSelectionState();
+    return;
+  }
+  voiceAdvisorState.currentRecommendations.forEach((rec, idx)=>{
+    const wrapper = document.createElement('label');
+    wrapper.className = 'advisor-reco';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.dataset.index = rec.indeks;
+    checkbox.dataset.suggested = String(rec.suggestedSpend || 0);
+    checkbox.addEventListener('change', updateAdvisorSelectionState);
+    const details = document.createElement('div');
+    details.className = 'advisor-reco-details';
+    const title = document.createElement('strong');
+    title.textContent = `${rec.indeks} · ${rec.marka}`;
+    const name = document.createElement('div');
+    name.textContent = rec.nazwa || '';
+    const meta = document.createElement('div');
+    meta.className = 'muted';
+    const pts = fmtINT.format(rec.estimatedPoints || 0);
+    const spend = fmtPLN.format(rec.suggestedSpend || 0);
+    meta.textContent = `Przybliżony przyrost: ${pts} pkt · Budżet: ${spend} PLN · ${rec.reason}`;
+    details.appendChild(title);
+    if (rec.nazwa){ details.appendChild(name); }
+    details.appendChild(meta);
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(details);
+    voiceAdvisorState.recosEl.appendChild(wrapper);
+  });
+  updateAdvisorSelectionState();
+}
+
+function advisorSpeak(text){
+  if (!('speechSynthesis' in window) || !text) return;
+  try{ window.speechSynthesis.cancel(); }catch(_){ }
+  const utter = new SpeechSynthesisUtterance(text);
+  if (voiceAdvisorState.voice){ utter.voice = voiceAdvisorState.voice; }
+  utter.lang = (voiceAdvisorState.voice && voiceAdvisorState.voice.lang) || 'pl-PL';
+  try{ window.speechSynthesis.speak(utter); }catch(_){ }
+}
+
+function advisorStopConversation(resetHistory=false){
+  if (voiceAdvisorState.recognition){
+    try{ voiceAdvisorState.recognition.onend = voiceAdvisorState.recognition.onend; voiceAdvisorState.recognition.stop(); }catch(_){ }
+  }
+  if (voiceAdvisorState.mediaStream){
+    try{ voiceAdvisorState.mediaStream.getTracks().forEach(t=>t.stop()); }catch(_){ }
+    voiceAdvisorState.mediaStream = null;
+  }
+  voiceAdvisorState.listening = false;
+  updateAdvisorMic();
+  if ('speechSynthesis' in window){ try{ window.speechSynthesis.cancel(); }catch(_){ } }
+  if (resetHistory){
+    voiceAdvisorState.history = [];
+    voiceAdvisorState.currentRecommendations = [];
+    updateAdvisorHistory();
+    updateAdvisorRecommendations();
+  }
+}
+
+function addAdvisorRecommendations(all){
+  if (!voiceAdvisorState.currentRecommendations.length) return;
+  const selected = all ? voiceAdvisorState.currentRecommendations : voiceAdvisorState.currentRecommendations.filter(rec => {
+    const input = voiceAdvisorState.recosEl?.querySelector(`input[type="checkbox"][data-index="${rec.indeks}"]`);
+    return input ? input.checked : false;
+  });
+  if (!selected.length){ toast('Nie wybrano rekomendacji do dodania'); return; }
+  let added = 0;
+  for (const rec of selected){
+    if (rows.some(r => r.indeks === rec.indeks)) continue;
+    const data = wsad.find(r => r.indeks === rec.indeks);
+    if (!data) continue;
+    addRow(data, rec.suggestedSpend || 0);
+    added++;
+  }
+  if (added){ toast(`Dodano ${added} pozycji z rekomendacji`); }
+  else { toast('Wszystkie proponowane pozycje są już na liście'); }
+}
+
+function openAdvisorModal(){
+  if (!voiceAdvisorState.modal) return;
+  if (typeof voiceAdvisorState.modal.showModal === 'function'){
+    if (!voiceAdvisorState.modal.open){
+      try{ voiceAdvisorState.modal.showModal(); }
+      catch(_){ voiceAdvisorState.modal.setAttribute('open','true'); }
+    }
+  } else {
+    voiceAdvisorState.modal.setAttribute('open','true');
+  }
+  updateAdvisorHistory();
+  updateAdvisorRecommendations();
+  if (voiceAdvisorState.inputEl){ voiceAdvisorState.inputEl.focus(); }
+}
+
+function closeAdvisorModal(){
+  if (!voiceAdvisorState.modal) return;
+  if (voiceAdvisorState.modal.open){
+    try{ voiceAdvisorState.modal.close(); }
+    catch(_){ voiceAdvisorState.modal.removeAttribute('open'); }
+  }
+}
+
+function toggleAdvisorMic(){
+  if (voiceAdvisorState.listening){
+    advisorStopConversation(false);
+    return;
+  }
+  if (voiceAdvisorState.recognition){
+    try{ voiceAdvisorState.recognition.start(); voiceAdvisorState.listening = true; updateAdvisorMic(); }
+    catch(err){ console.warn('Recognition start failed', err); toast('Nie można rozpocząć nasłuchiwania'); }
+  } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+      voiceAdvisorState.mediaStream = stream;
+      voiceAdvisorState.listening = true;
+      updateAdvisorMic();
+      toast('Nagrywanie aktywne, brak natywnego rozpoznawania mowy.');
+    }).catch(()=>toast('Brak zgody na mikrofon'));
+  } else {
+    toast('Rozpoznawanie mowy nie jest obsługiwane w tej przeglądarce.');
+  }
+}
+
+function handleAdvisorQuery(text){
+  const question = String(text || '').trim();
+  if (!question){ return; }
+  voiceAdvisorState.history.push({ role:'user', text: question });
+  updateAdvisorHistory();
+  const result = processAdvisorQuery(question);
+  const reply = (result && result.message) ? result.message : 'Nie mogę teraz pomóc z tym pytaniem.';
+  voiceAdvisorState.history.push({ role:'assistant', text: reply });
+  voiceAdvisorState.currentRecommendations = (result && Array.isArray(result.recommendations)) ? result.recommendations : [];
+  updateAdvisorHistory();
+  updateAdvisorRecommendations();
+  if (result && result.recommendations && result.recommendations.length === 0){
+    voiceAdvisorState.addAllBtn && (voiceAdvisorState.addAllBtn.disabled = true);
+    voiceAdvisorState.addSelectedBtn && (voiceAdvisorState.addSelectedBtn.disabled = true);
+  }
+  if (!result || result.silent !== true){ advisorSpeak(reply); }
+}
+
+function initVoiceAdvisor(){
+  voiceAdvisorState.modal = $('advisor-dialog');
+  if (!voiceAdvisorState.modal) return;
+  voiceAdvisorState.historyEl = $('advisor-history');
+  voiceAdvisorState.recosEl = $('advisor-recos');
+  voiceAdvisorState.inputEl = $('advisor-input');
+  voiceAdvisorState.micBtn = $('advisor-mic');
+  voiceAdvisorState.addAllBtn = $('advisor-add-all');
+  voiceAdvisorState.addSelectedBtn = $('advisor-add-selected');
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  if (Recognition){
+    const rec = new Recognition();
+    rec.lang = 'pl-PL';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (event)=>{
+      const transcript = Array.from(event.results).map(r=>r[0] && r[0].transcript ? r[0].transcript : '').join(' ').trim();
+      if (transcript){ handleAdvisorQuery(transcript); }
+    };
+    rec.onstart = ()=>{ voiceAdvisorState.listening = true; updateAdvisorMic(); };
+    rec.onend = ()=>{ voiceAdvisorState.listening = false; updateAdvisorMic(); };
+    rec.onerror = (evt)=>{ voiceAdvisorState.listening = false; updateAdvisorMic(); if (evt && evt.error !== 'aborted') toast('Błąd rozpoznawania mowy'); };
+    voiceAdvisorState.recognition = rec;
+  } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+      voiceAdvisorState.mediaStream = stream;
+      voiceAdvisorState.listening = false;
+      updateAdvisorMic();
+    }).catch(()=>{});
+  }
+  if ('speechSynthesis' in window){
+    const pickVoice = ()=>{
+      const voices = window.speechSynthesis.getVoices() || [];
+      voiceAdvisorState.voice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('pl')) || voices[0] || null;
+    };
+    pickVoice();
+    window.speechSynthesis.addEventListener('voiceschanged', pickVoice);
+  }
+  const openBtn = $('btn-voice-advisor');
+  if (openBtn){
+    openBtn.addEventListener('click', ()=>{
+      openAdvisorModal();
+      if (!voiceAdvisorState.recognition && navigator.mediaDevices && !voiceAdvisorState.mediaStream){
+        navigator.mediaDevices.getUserMedia({audio:true}).then(stream => { voiceAdvisorState.mediaStream = stream; }).catch(()=>{});
+      }
+    });
+  }
+  if (voiceAdvisorState.micBtn){ voiceAdvisorState.micBtn.addEventListener('click', toggleAdvisorMic); }
+  const closeBtn = $('advisor-close');
+  if (closeBtn){ closeBtn.addEventListener('click', ()=>{ closeAdvisorModal(); advisorStopConversation(false); }); }
+  const stopBtn = $('advisor-stop');
+  if (stopBtn){ stopBtn.addEventListener('click', ()=>{ advisorStopConversation(true); }); }
+  const sendBtn = $('advisor-send');
+  if (sendBtn){ sendBtn.addEventListener('click', ()=>{ const val = (voiceAdvisorState.inputEl && voiceAdvisorState.inputEl.value) ? voiceAdvisorState.inputEl.value.trim() : ''; if (val){ handleAdvisorQuery(val); voiceAdvisorState.inputEl.value=''; } }); }
+  if (voiceAdvisorState.inputEl){ voiceAdvisorState.inputEl.addEventListener('keydown', e=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); const v=voiceAdvisorState.inputEl.value.trim(); if(v){ handleAdvisorQuery(v); voiceAdvisorState.inputEl.value=''; } } }); }
+  if (voiceAdvisorState.addAllBtn){ voiceAdvisorState.addAllBtn.addEventListener('click', ()=> addAdvisorRecommendations(true)); }
+  if (voiceAdvisorState.addSelectedBtn){ voiceAdvisorState.addSelectedBtn.addEventListener('click', ()=> addAdvisorRecommendations(false)); }
+  voiceAdvisorState.modal.addEventListener('close', ()=>{ advisorStopConversation(false); });
+  voiceAdvisorState.modal.addEventListener('cancel', (e)=>{ e.preventDefault(); closeAdvisorModal(); advisorStopConversation(false); });
+  updateAdvisorMic();
+  updateAdvisorHistory();
+  updateAdvisorRecommendations();
+}
+
+function processAdvisorQuery(text){
+  const question = String(text || '');
+  const norm = K(question);
+  const targetTys = question.match(/(\d+(?:[.,]\d+)?)\s*(tys|tysięcy)\s*(pkt|punkt|punkty|punktów)?/i);
+  const targetDirect = question.match(/(\d+(?:[.,]\d+)?)\s*(pkt|punkt|punkty|punktów)/i);
+  let targetPoints = null;
+  if (targetTys){ targetPoints = Math.round(parseNumber(targetTys[1]) * 1000); }
+  else if (targetDirect){ targetPoints = Math.round(parseNumber(targetDirect[1])); }
+  const budgetMatch = question.match(/(\d+(?:[.,]\d+)?)\s*(tys|tysięcy)?\s*(zł|pln|zloty|złotych)/i);
+  let budget = 0;
+  if (budgetMatch){
+    budget = parseNumber(budgetMatch[1]);
+    if (budgetMatch[2] && /tys|tysięcy/i.test(budgetMatch[2])) budget *= 1000;
+  }
+  const tokens = Array.from(new Set(question.toLowerCase().split(/[^a-z0-9ąćęłńóśżź]+/i).filter(w => w.length > 3)));
+  const bannedTokens = ['budzet','budżet','punkty','cel','potrzebuje','prosze','dodaj','daj','marka','szukam'];
+  const meaningfulTokens = tokens.filter(tok => !bannedTokens.includes(tok));
+  const existing = new Set(rows.map(r => r.indeks));
+  const brands = Array.from(new Set(wsad.map(r => r.marka).filter(Boolean)));
+  const brandMatches = new Set();
+  for (const brand of brands){ if (norm.includes(K(brand))) brandMatches.add(brand); }
+  let candidates = wsad.filter(r => !existing.has(r.indeks) && NF(r.punktyNa1000) > 0);
+  let usedBrandFilter = false;
+  if (brandMatches.size){
+    candidates = candidates.filter(r => brandMatches.has(r.marka));
+    usedBrandFilter = true;
+  }
+  let usedTokenFilter = false;
+  if (!usedBrandFilter && meaningfulTokens.length){
+    const filtered = candidates.filter(r => {
+      const hay = `${r.marka} ${r.nazwa || ''}`.toLowerCase();
+      return meaningfulTokens.some(tok => hay.includes(tok));
+    });
+    if (filtered.length){
+      candidates = filtered;
+      usedTokenFilter = true;
+    }
+  }
+  if (!candidates.length){
+    return { message: 'Nie znalazłem produktów odpowiadających temu pytaniu. Spróbuj doprecyzować markę lub kategorię.', recommendations: [] };
+  }
+  const summary = calcSummary();
+  const currentPoints = summary.reduce((sum, b) => sum + NF(b.pts), 0) + Math.floor(NF(ecom) / 1000) * NF(ecomRate);
+  const gap = targetPoints ? Math.max(targetPoints - currentPoints, 0) : 0;
+  const bestRate = candidates.reduce((mx, r) => Math.max(mx, NF(r.punktyNa1000)), 0);
+  let normalizedBudget;
+  if (budget > 0){
+    normalizedBudget = Math.max(1000, Math.round(budget / 1000) * 1000);
+  } else if (gap > 0 && bestRate > 0){
+    normalizedBudget = Math.max(1000, Math.ceil(gap / bestRate) * 1000);
+    normalizedBudget = Math.min(normalizedBudget, 10000);
+  } else {
+    normalizedBudget = 3000;
+  }
+  let remainingBlocks = Math.floor(normalizedBudget / 1000);
+  if (remainingBlocks <= 0) remainingBlocks = 1;
+  let remainingGap = gap;
+  const sorted = candidates.sort((a,b)=>{
+    const ra = NF(a.punktyNa1000) / 1000;
+    const rb = NF(b.punktyNa1000) / 1000;
+    if (rb !== ra) return rb - ra;
+    return a.marka.localeCompare(b.marka,'pl');
+  }).slice(0, Math.min(3, candidates.length));
+  const recommendations = [];
+  const totalSlots = sorted.length || 1;
+  for (let i=0; i<sorted.length; i++){
+    if (budget > 0 && remainingBlocks <= 0) break;
+    const item = sorted[i];
+    const baseBlocks = remainingBlocks > 0 ? Math.max(1, Math.floor(remainingBlocks / Math.max(1, totalSlots - i))) : 1;
+    let blocks = baseBlocks;
+    if (remainingGap > 0){
+      const needed = Math.max(1, Math.ceil(remainingGap / Math.max(NF(item.punktyNa1000), 1)));
+      blocks = Math.max(blocks, needed);
+      if (remainingBlocks > 0) blocks = Math.min(blocks, remainingBlocks);
+    }
+    if (remainingBlocks > 0 && blocks > remainingBlocks) blocks = remainingBlocks;
+    if (blocks <= 0) blocks = 1;
+    const spend = blocks * 1000;
+    const estPts = blocks * NF(item.punktyNa1000);
+    recommendations.push({
+      indeks: item.indeks,
+      marka: item.marka,
+      nazwa: item.nazwa || '',
+      suggestedSpend: spend,
+      estimatedPoints: estPts,
+      reason: `~${fmtINT.format(NF(item.punktyNa1000))} pkt / 1000 PLN`
+    });
+    if (remainingBlocks > 0){ remainingBlocks = Math.max(0, remainingBlocks - blocks); }
+    if (remainingGap > 0){ remainingGap = Math.max(0, remainingGap - estPts); }
+  }
+  if (!recommendations.length){
+    return { message: 'Nie mam czego zaproponować w oparciu o aktualne dane. Spróbuj użyć innej marki lub zwiększyć budżet.', recommendations: [] };
+  }
+  const parts = [];
+  if (targetPoints){
+    if (gap <= 0){ parts.push(`Masz już ${fmtINT.format(currentPoints)} pkt, cel ${fmtINT.format(targetPoints)} pkt został osiągnięty.`); }
+    else { parts.push(`Brakuje około ${fmtINT.format(gap)} pkt do celu ${fmtINT.format(targetPoints)} pkt.`); }
+  } else {
+    parts.push(`Aktualny wynik to około ${fmtINT.format(currentPoints)} pkt.`);
+  }
+  if (usedBrandFilter){ parts.push(`Skupiłem się na marce: ${Array.from(brandMatches).join(', ')}.`); }
+  else if (usedTokenFilter){ parts.push(`Uwzględniłem słowa kluczowe: ${meaningfulTokens.join(', ')}.`); }
+  if (recommendations.length){ parts.push(`Przy budżecie około ${fmtPLN.format(normalizedBudget)} PLN proponuję:`); }
+  const message = parts.join(' ');
+  return { message, recommendations };
+}
+
+function setTheme(mode){
+  const root = document.documentElement;
+  if (mode==='light'){ root.classList.add('light'); document.body.classList.remove('dark'); }
+  else { root.classList.remove('light'); document.body.classList.add('dark'); }
+  try{ localStorage.setItem('sigup_theme', mode); }catch(_){}
+}
+(function initTheme(){
+  const saved = localStorage.getItem('sigup_theme');
+  if (saved){ setTheme(saved); }
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches){ setTheme('light'); }
+  else { setTheme('dark'); }
+})();
+$('btn-theme').onclick = ()=>{
+  setTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
+  advisorStopConversation(false);
+};
+
+let wsad=[]; let rows=[]; let ecom=0; let ecomRate=10; let pointValue=0.20; let modeBrand=true; let nextId=1;
+
+function buildDatalist(){
+  const dl = $('idxlist');
+  dl.innerHTML = wsad.slice(0, 20000).map(r => {
+    const name = r.nazwa ? String(r.nazwa) : '';
+    const namePart = name ? ` — ${truncate(name)}` : '';
+    const base = `<option value="${r.indeks}">${r.indeks} — ${r.marka}${namePart} (${r.punktyNa1000} pkt/1000)</option>`;
+    const optByName = name ? `<option value="${name}">${name} — ${r.marka} (${r.indeks})</option>` : '';
+    const optByBrandName = name ? `<option value="${r.marka} ${name}">${r.marka} — ${name} (${r.indeks})</option>` : '';
+    return base + optByName + optByBrandName;
+  }).join('');
+  $('meta').textContent = `WSAD: ${fmtINT.format(wsad.length)} pozycji`;
+}
+
+function findByQuery(q){
+  if (!q) return null;
+  const s = K(q);
+  let rec = wsad.find(r => K(r.indeks)===s) ||
+            wsad.find(r => K(r.indeks).startsWith(s)) ||
+            wsad.find(r => K(r.marka).includes(s)) ||
+            wsad.find(r => K(r.nazwa || '').includes(s)) ||
+            wsad.find(r => K(r.indeks).includes(s));
+  return rec || null;
+}
+
+function addRow(rec, kwota=0){
+  const row = { id: nextId++, indeks: rec.indeks, marka: rec.marka, nazwa: rec.nazwa || '', rate: NF(rec.punktyNa1000) || 0, kwota: NF(kwota) || 0 };
+  rows.push(row);
+  renderRow(row);
+  $('btn-export').disabled = false;
+  $('btn-share').disabled = false;
+  if ($('btn-export-pdf')) $('btn-export-pdf').disabled = false;
+  persistState();
+  recalc();
+}
+
+function renderRow(row){
+  // Render a single product row into the lines-body container. Uses a grid div instead of a table row so multiple
+  // rows remain visible and scrollable. The first empty placeholder is removed on the first insert.
+  const container = $('lines');
+  if (container.children.length === 1 && container.children[0].classList.contains('lines-empty')) {
+    container.innerHTML = '';
+  }
+  const rowEl = document.createElement('div');
+  rowEl.className = 'line';
+  rowEl.dataset.id = row.id;
+  // remove button
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.title = 'Usuń';
+  btn.className = 'remove-btn';
+  btn.innerHTML = '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 2l12 12M14 2L2 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  btn.onclick = () => {
+    rows = rows.filter(r => r.id !== row.id);
+    rowEl.remove();
+    if (rows.length === 0) {
+      container.innerHTML = '<div class="muted lines-empty" style="text-align:center;padding:8px 0">Brak pozycji.</div>';
+    }
+    persistState();
+    recalc();
+  };
+  rowEl.appendChild(btn);
+  // index cell
+  const divIdx = document.createElement('div');
+  divIdx.style.fontWeight = '700';
+  divIdx.textContent = row.indeks;
+  rowEl.appendChild(divIdx);
+  // brand cell
+  const divBrand = document.createElement('div');
+  divBrand.textContent = row.marka;
+  rowEl.appendChild(divBrand);
+  // product cell
+  const divName = document.createElement('div');
+  divName.className = 'muted';
+  divName.textContent = truncate(row.nazwa);
+  divName.title = row.nazwa || '';
+  rowEl.appendChild(divName);
+  // amount cell with input
+  const divAmt = document.createElement('div');
+  // Center the input within the amount column
+  divAmt.style.display = 'flex';
+  divAmt.style.justifyContent = 'center';
+  divAmt.style.alignItems = 'center';
+  const inp = document.createElement('input');
+  inp.className = 'input';
+  // Make the input fill the cell and center the amount so long values are fully visible
+  inp.style.width = '100%';
+  inp.style.textAlign = 'center';
+  inp.placeholder = '0';
+  inp.value = row.kwota > 0 ? fmtPLN.format(row.kwota) : '';
+  divAmt.appendChild(inp);
+  inp.addEventListener('input', () => { row.kwota = parseNumber(inp.value); recalc(); persistState(); });
+  inp.addEventListener('blur', () => { inp.value = row.kwota > 0 ? fmtPLN.format(row.kwota) : ''; });
+  rowEl.appendChild(divAmt);
+  // points cell
+  const divPts = document.createElement('div');
+  divPts.className = 'right';
+  rowEl.appendChild(divPts);
+  // value cell
+  const divVal = document.createElement('div');
+  divVal.className = 'right money';
+  rowEl.appendChild(divVal);
+  container.appendChild(rowEl);
+}
+
+function renderAllRows(){
+  // Reset the lines body to show a placeholder when no rows are present, then rebuild all rows.
+  const container = $('lines');
+  container.innerHTML = '<div class="muted lines-empty" style="text-align:center;padding:8px 0">Brak pozycji.</div>';
+  rows.forEach(renderRow);
+}
+
+function calcSummary(){
+  const brands=new Map();
+  for (const r of rows){
+    const b = brands.get(r.marka)||{kwota:0, rate:r.rate, rows:[]};
+    b.kwota += NF(r.kwota); b.rate=r.rate; b.rows.push(r); brands.set(r.marka,b);
+  }
+  const out=[];
+  if (modeBrand){
+    for (const [marka,b] of brands){ const tys=Math.floor(b.kwota/1000); const pts=tys*b.rate; const val=pts*pointValue; out.push({marka,kwota:b.kwota,tys,rate:b.rate,pts,val,rows:b.rows}); }
+  }else{
+    for (const [marka,b] of brands){ let tys=0,pts=0; for (const r of b.rows){ const t=Math.floor(NF(r.kwota)/1000); tys+=t; pts+=t*b.rate; } out.push({marka,kwota:b.kwota,tys,rate:b.rate,pts,val:pts*pointValue,rows:b.rows}); }
+  }
+  out.sort((a,b)=> a.marka.localeCompare(b.marka,'pl')); return out;
+}
+
+function recalc(){
+  const sum=calcSummary();
+  const container = $('lines');
+  for (const rowEl of container.children){
+    if (rowEl.classList && rowEl.classList.contains('lines-empty')) continue;
+    const id = parseInt(rowEl.dataset.id || '0', 10);
+    const row = rows.find(r => r.id === id);
+    if (!row) continue;
+    const tys = Math.floor(NF(row.kwota) / 1000);
+    const ptsLine = tys * (row.rate || 0);
+    let rowValue = ptsLine * pointValue;
+    if (modeBrand) {
+      const brand = sum.find(b => b.marka === row.marka);
+      const share = brand && brand.kwota > 0 ? (NF(row.kwota) / brand.kwota) : 0;
+      rowValue = (brand ? brand.val : 0) * share;
+    }
+    // update only points and value cells; after removing the rate column, children[5] is points and [6] is value
+    rowEl.children[5].textContent = fmtINT.format(ptsLine);
+    rowEl.children[6].textContent = fmtPLN.format(rowValue);
+  }
+  const tbodyS = $('summary');
+  const ePts = Math.floor(NF(ecom) / 1000) * NF(ecomRate);
+  const eVal = ePts * pointValue;
+  if (sum.length === 0 && ePts === 0) {
+    tbodyS.innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center">Brak danych.</td></tr>';
+  } else {
+    // Build summary table without the Punkty/1000 column. Columns: Marka, Suma kwot, Punkty marki, Wartość nagrody
+    tbodyS.innerHTML = sum.map(b => `
+      <tr>
+        <td style="font-weight:700">${b.marka}</td>
+        <td class="right">${fmtPLN.format(b.kwota)}</td>
+        <td class="right">${fmtINT.format(b.pts)}</td>
+        <td class="right money">${fmtPLN.format(b.val)}</td>
+      </tr>`).join('')
+      + `<tr><td style="font-weight:700">Ecommerce</td>
+           <td class="right">${fmtPLN.format(NF(ecom))}</td>
+           <td class="right">${fmtINT.format(ePts)}</td>
+           <td class="right money">${fmtPLN.format(eVal)}</td></tr>
+         <tr><td style="font-weight:800">SUMA</td>
+           <td></td>
+           <td class="right" style="font-weight:800">${fmtINT.format(sum.reduce((s,b) => s + b.pts, 0) + ePts)}</td>
+           <td class="right money" style="font-weight:900">${fmtPLN.format(sum.reduce((s,b) => s + b.val, 0) + eVal)}</td></tr>`;
+  }
+  $('prog').style.width = (sum.length>0? Math.round(100*sum.filter(b=>b.kwota>0).length/Math.max(sum.length,1)):0) + '%';
+  $('totals').textContent = `${fmtINT.format(sum.reduce((s,b)=>s+b.pts,0)+ePts)} pkt · ${fmtPLN.format(sum.reduce((s,b)=>s+b.val,0)+eVal)} PLN`;
+}
+
+// Quickly set ecommerce amount to a percentage of the total net amounts of all rows.
+function setEcomShare(percent){
+  // sum of kwota for all rows
+  const total = rows.reduce((s, r) => s + NF(r.kwota), 0);
+  ecom = total * percent;
+  syncInputs();
+  recalc();
+  persistState();
+}
+
+function persistState(){
+  // Only persist when a 'persist' checkbox exists and is checked. Absent in this version, so skip persistence by default.
+  if (!($('persist') && $('persist').checked)) return;
+  try{ localStorage.setItem('sigup_ultra_state', JSON.stringify({ rows, ecom, ecomRate, pointValue, modeBrand })); }catch(_){}
+}
+function restoreState(){
+  try{ const st=JSON.parse(localStorage.getItem('sigup_ultra_state')||'null'); if (!st) return false;
+    rows = Array.isArray(st.rows)? st.rows.map(r=>({id:nextId++, indeks:r.indeks, marka:r.marka, nazwa:r.nazwa||'', rate:NF(r.rate), kwota:NF(r.kwota)})) : [];
+    ecom = NF(st.ecom||0); ecomRate = NF(st.ecomRate||10); pointValue = NF(st.pointValue||0.2); modeBrand = !!st.modeBrand;
+    renderAllRows(); syncInputs(); recalc(); return true;
+  }catch(_){ return false; }
+}
+
+function syncInputs(){
+  // Only update ecommerce input; rate, point value and mode controls removed
+  $('ecom').value = ecom > 0 ? fmtPLN.format(ecom) : '';
+}
+
+$('q').addEventListener('input', ()=> $('btn-add').disabled = $('q').value.trim().length===0 );
+$('q').addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ const rec = findByQuery($('q').value.trim()); if (rec){ addRow(rec); $('q').value=''; }}});
+$('btn-add').onclick = ()=>{ const rec = findByQuery($('q').value.trim()); if (rec){ addRow(rec); $('q').value=''; }};
+document.addEventListener('keydown', (e)=>{ if (e.ctrlKey && (e.key==='k' || e.key==='K')){ e.preventDefault(); $('q').focus(); }});
+
+$('ecom').addEventListener('input', ()=>{ ecom = parseNumber($('ecom').value); recalc(); persistState(); });
+// Quick buttons: set ecommerce amount to 0%, 50% or 100% of the sum of kwota values
+if (document.getElementById('btn-ecom-0')) {
+  $('btn-ecom-0').onclick = () => setEcomShare(0);
+  $('btn-ecom-50').onclick = () => setEcomShare(0.5);
+  $('btn-ecom-100').onclick = () => setEcomShare(1);
+}
+// removed listeners for custom rate, point value and mode; constants are fixed
+
+$('btn-bulk').onclick = ()=>{
+  const lines = $('bulk').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  let ok=0, miss=0;
+  for (const ln of lines){
+    const m = ln.split(/[;\s]+/);
+    const idx = m[0], amt = m[1]||0;
+    const rec = findByQuery(idx);
+    if (rec){ addRow(rec, parseNumber(amt)); ok++; } else miss++;
+  }
+  toast(`Dodano ${ok}. Nie znaleziono ${miss}.`);
+  $('bulk').value='';
+};
+
+$('btn-export').onclick = ()=>{
+  const sum = calcSummary();
+  const ePts = Math.floor(NF(ecom)/1000) * NF(ecomRate);
+  const eVal = ePts * pointValue;
+  // Build CSV without the Punkty/1000 column. Columns: Marka, Suma kwot, Punkty marki, Nagroda, Ecommerce punkty, Ecommerce nagroda, Punkty łącznie, Nagroda łącznie
+  const header = ['Marka','Suma kwot [PLN]','Punkty marki','Wartość nagrody [PLN]','Ecommerce punkty','Ecommerce wartość nagrody [PLN]','Punkty łącznie','Wartość łącznie nagrody [PLN]'];
+  const rowsCsv = [ header, ...sum.map(b => [
+    b.marka,
+    fmtPLN.format(b.kwota),
+    b.pts,
+    fmtPLN.format(b.val),
+    '',
+    '',
+    '',
+    ''
+  ]) ];
+  // Ecommerce row: kwota ecommerce in column 1, ecommerce points and value in columns 4 and 5
+  rowsCsv.push([
+    'Ecommerce',
+    fmtPLN.format(NF(ecom)),
+    '',
+    '',
+    ePts,
+    fmtPLN.format(eVal),
+    '',
+    ''
+  ]);
+  const totalPts = sum.reduce((s,b) => s + b.pts, 0);
+  const totalVal = sum.reduce((s,b) => s + b.val, 0);
+  rowsCsv.push([
+    'SUMA',
+    '',
+    '',
+    '',
+    '',
+    '',
+    totalPts + ePts,
+    fmtPLN.format(totalVal + eVal)
+  ]);
+  const csv = rowsCsv.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='wynik_sigup.csv'; a.click();
+};
+$('btn-export-pdf').onclick = () => {
+  exportToPdf();
+};
+$('btn-share').onclick = ()=>{
+  const st = { rows, ecom, ecomRate, pointValue, modeBrand };
+  const s = btoa(unescape(encodeURIComponent(JSON.stringify(st))));
+  const url = location.origin + location.pathname + '#state=' + s;
+  navigator.clipboard.writeText(url).then(()=>toast('Skopiowano link do schowka'), ()=>{});
+};
+$('btn-reset').onclick = ()=>{ rows=[]; renderAllRows(); ecom=0; ecomRate=10; pointValue=0.2; modeBrand=true; nextId=1; syncInputs(); recalc(); persistState(); toast('Wyczyszczono'); };
+$('btn-reset').onclick = ()=>{
+  rows=[];
+  renderAllRows();
+  ecom=0; ecomRate=10; pointValue=0.2; modeBrand=true; nextId=1;
+  syncInputs();
+  recalc();
+  persistState();
+  $('btn-export').disabled = true;
+  $('btn-share').disabled = true;
+  if ($('btn-export-pdf')) $('btn-export-pdf').disabled = true;
+  advisorStopConversation(true);
+  closeAdvisorModal();
+  toast('Wyczyszczono');
+};
+
+const importCard = document.querySelectorAll('.card')[2];
+importCard.addEventListener('dragover', e=>{ e.preventDefault(); importCard.style.boxShadow='0 0 0 2px color-mix(in oklab, var(--ring) 60%, transparent) inset'; });
+importCard.addEventListener('dragleave', e=>{ importCard.style.boxShadow=''; });
+importCard.addEventListener('drop', async e=>{
+  e.preventDefault(); importCard.style.boxShadow='';
+  const f = e.dataTransfer.files[0]; await handleFile(f);
+});
+const btnLoad = $('btn-load');
+if (btnLoad) {
+  btnLoad.onclick = async () => {
+    const fileInput = $('file');
+    const f = fileInput && fileInput.files ? fileInput.files[0] : null;
+    if (f) { await handleFile(f); }
+  };
+}
+async function handleFile(file){
+  if (!file){ toast('Nie wybrano pliku'); return; }
+  const name = (file && file.name ? file.name : '').toLowerCase();
+  const ext = name.split('.').pop();
+  try{
+    let data;
+    // handle spreadsheet formats
+    if(ext==='xls' || ext==='xlsx' || ext==='ods'){
+      await ensureXlsx();
+      if(!window.XLSX) throw new Error('Biblioteka XLSX niezaładowana');
+      const buf = await file.arrayBuffer();
+      let wb;
+      try{
+        wb = XLSX.read(buf, {type:'array'});
+      }catch(e){ throw new Error('Nie można odczytać arkusza: '+e.message); }
+      if(!wb || !wb.SheetNames || !wb.SheetNames.length) throw new Error('Brak arkuszy w pliku');
+      let sheetName = wb.SheetNames[0];
+      for(let s of wb.SheetNames){ const sl=s.toLowerCase(); if(sl.includes('wsad') || sl.includes('dane')){ sheetName=s; break; } }
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {defval:'', raw:false});
+      if(!rows || !rows.length) throw new Error('Arkusz jest pusty');
+      data = rows;
+      applyWsad(data, `WSAD z ${file.name} (${sheetName})`);
+      toast('WSAD wczytany');
+      return;
+    }
+    // handle CSV and JSON
+    const text = await file.text();
+    if(ext==='csv' || ext==='txt' || text.includes(';') || text.includes(',')){
+      data = parseCSVtoWSAD(text);
+    } else {
+      const j = JSON.parse(text);
+      data = Array.isArray(j) ? j : (j.data || j.items || []);
+    }
+    applyWsad(data, `WSAD z ${file.name}`);
+    toast('WSAD wczytany');
+  }catch(err){
+    console.error(err);
+    toast('Błąd pliku: ' + (err.message || err));
+  }
+}
+
+function csvToRows(csvText){
+  const out=[]; let i=0,cur="",row=[],q=false,delim=null;
+  const s=csvText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const sample=s.slice(0,200); delim=sample.indexOf(';')>-1?';':',';
+  while(i<s.length){
+    const ch=s[i];
+    if(ch==='"'){ if(q && s[i+1]==='"'){cur+='"'; i++;} else q=!q; }
+    else if(!q && ch===delim){ row.push(cur); cur=""; }
+    else if(!q && ch==='\n'){ row.push(cur); out.push(row); row=[]; cur=""; }
+    else { cur+=ch; }
+    i++;
+  }
+  if(cur.length>0 || row.length>0){ row.push(cur); out.push(row); }
+  return out;
+}
+function headerMap(h){
+  const m={};
+  h.forEach((name,idx)=>{
+    const n=K(name);
+    // index column: allow synonyms such as indeks, index, kod, sku
+    if(m.indeks===undefined && /(indeks|index|kod|sku)/.test(n)){ m.indeks=idx; return; }
+    // brand column: allow marka, brand, producent (exclude those containing 'punkty' to avoid capturing rate columns)
+    if(m.marka===undefined && /(marka|brand|producent)/.test(n) && n.indexOf('punkty')===-1){ m.marka=idx; return; }
+    // points per 1000: allow punkty, points, pkt and explicit names
+    if(m.rate===undefined && (/(punkty|points|pkt)/.test(n) || n==='punktyna1000' || n==='punkty/1000' || n==='punkty1000' || n==='pointsper1000' || n==='ptsper1000')){ m.rate=idx; return; }
+    // product name column: allow nazwa, produkt, product, opis, description, name
+    if(m.nazwa===undefined && /(nazwa|produkt|product|opis|description|name)/.test(n)){ m.nazwa=idx; return; }
+  });
+  return m;
+}
+function parseCSVtoWSAD(text){
+  const rows=csvToRows(text); if(!rows.length) throw new Error('Pusty CSV');
+  const map=headerMap(rows[0]);
+  if(map.indeks==null || map.marka==null){ throw new Error('Brakuje kolumn: indeks, marka'); }
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; if(!r||(!r[map.indeks]&&!r[map.marka])) continue;
+    out.push({
+      indeks: String(r[map.indeks]).trim(),
+      marka: String(r[map.marka]).trim(),
+      nazwa: map.nazwa!=null ? String(r[map.nazwa]).trim() : '',
+      punktyNa1000: parseNumber(map.rate!=null ? r[map.rate] : 0) || 0
+    });
+  }
+  return out;
+}
+function applyWsad(data, label='WSAD'){
+  wsad = Array.isArray(data)? data.map(r=>({
+    indeks: String(r.indeks || r.Indeks || r.ID || '').trim(),
+    marka: String(r.marka || r.Marka || '-').trim(),
+    nazwa: String(r.nazwa || r.Nazwa || r.name || r.Name || r.produkt || r.Produkt || r.product || r.Product || r.opis || r.Opis || r.description || r.Description || '').trim(),
+    punktyNa1000: parseNumber(r.punktyNa1000 || r['punkty/1000'] || r.punkty || 0)
+  })) : [];
+  buildDatalist();
+  $('meta').textContent = `${label} · ${fmtINT.format(wsad.length)} pozycji`;
+  const btnSave = $('btn-save-state');
+  if (btnSave) btnSave.disabled = false;
+}
+
+/* ===== PDF Import ===== */
+// Store the last selected PDF file for convenience
+let lastPdfFile = null;
+
+// Handle change on PDF file input; store selected file
+function handleOfferChange(input){
+  try{
+    lastPdfFile = (input && input.files && input.files[0]) ? input.files[0] : null;
+  }catch(_){ lastPdfFile = null; }
+}
+
+// When clicking the PDF import button, parse the selected PDF and add rows
+async function handleOfferClick(){
+  // prefer stored file from change handler, fallback to current input element
+  const f = lastPdfFile || (document.getElementById('offer') && document.getElementById('offer').files[0]);
+  if(!f){ toast('Nie wybrano PDF'); return; }
+  try{
+    const buf = await f.arrayBuffer();
+    const items = await parseOfferPDF(buf);
+    if(!items || !items.length){ toast('Nie znaleziono pozycji'); return; }
+    let ok = 0, miss = 0;
+    for(const it of items){
+      let rec = null;
+      const key = K(it.indeks);
+      for(const r of wsad){
+        if(K(r.indeks) === key){ rec = r; break; }
+      }
+      if(rec){
+        addRow(rec, it.kwotaNetto);
+        ok++;
+      } else {
+        miss++;
+      }
+    }
+    toast('Z PDF dodano '+ok+'. Brak w WSAD: '+miss+'.');
+  }catch(err){
+    console.error(err);
+    toast('Błąd PDF: ' + (err && err.message ? err.message : err));
+  }
+}
+
+// Dynamically load pdf.js library from multiple CDNs; set worker source accordingly
+async function ensurePdfJs(){
+  if(window.pdfjsLib) return;
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+    'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js'
+  ];
+  for(const url of urls){
+    try{
+      await loadScriptOnce(url);
+      if(window.pdfjsLib){
+        try{
+          const worker = url.replace(/pdf\.min\.js$/, 'pdf.worker.min.js');
+          if(window.pdfjsLib.GlobalWorkerOptions){ pdfjsLib.GlobalWorkerOptions.workerSrc = worker; }
+        }catch(_){}
+        return;
+      }
+    }catch(_){ /* try next */ }
+  }
+}
+
+// Extract items from PDF text. Looks for "Indeks SIG: <CODE>" and the next money amount (net)
+function extractItemsFromText(full){
+  const out = [];
+  const idxRe = /Indeks\s+SIG:\s*([A-Z0-9]+)/g;
+  let m;
+  const starts = [];
+  while((m = idxRe.exec(full))){
+    starts.push({ indeks: m[1].trim(), pos: m.index });
+  }
+  for(let i=0; i<starts.length; i++){
+    const start = starts[i].pos;
+    const end = (i+1 < starts.length ? starts[i+1].pos : full.length);
+    const block = full.slice(start, end);
+    const moneyRe = /(\d{1,3}(?:[ \u00A0]\d{3})*,\d{2})\s*zł(?!\s*\/)/;
+    const mm = block.match(moneyRe);
+    if(mm){
+      out.push({ indeks: starts[i].indeks, kwotaNetto: parseNumber(mm[1]) });
+    }
+  }
+  return out;
+}
+
+// Parse PDF arrayBuffer; returns list of {indeks, kwotaNetto}
+async function parseOfferPDF(arrayBuffer){
+  try{
+    await ensurePdfJs();
+    const opts = { data: arrayBuffer };
+    try{ opts.disableWorker = true; }catch(_){}
+    const task = pdfjsLib.getDocument(opts);
+    const pdf = await task.promise;
+    let full = '';
+    for(let p = 1; p <= pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const txt = await page.getTextContent({ normalizeWhitespace: true });
+      const items = txt.items || [];
+      for(const it of items){ full += it.str + ' '; }
+      full += '\n';
+    }
+    let itemsOut = extractItemsFromText(full);
+    if(!itemsOut.length){
+      // fallback to binary text decode
+      const text = new TextDecoder('latin1').decode(arrayBuffer);
+      itemsOut = extractItemsFromText(text);
+    }
+    return itemsOut;
+  }catch(e){
+    // Fallback: naive binary decode
+    let text = '';
+    try{ text = new TextDecoder('latin1').decode(arrayBuffer); }catch(_){}
+    const itemsOut = extractItemsFromText(text);
+    if(itemsOut.length) return itemsOut;
+    throw e;
+  }
+}
+
+/* ===== XLSX loader ===== */
+// Dynamically load SheetJS (xlsx.full.min.js) from multiple CDNs. Supports parsing XLS, XLSX and ODS files.
+async function ensureXlsx(){
+  if(window.XLSX) return;
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ];
+  for(const url of urls){
+    try{
+      await loadScriptOnce(url);
+      if(window.XLSX) return;
+    }catch(_){ /* try next */ }
+  }
+}
+
+/* ===== jsPDF loader for PDF export ===== */
+// Dynamically load jsPDF and AutoTable plugins from multiple CDNs
+// Dynamically load pdfMake and its VFS fonts. Supports Polish characters in PDF output.
+async function ensurePdfMake(){
+  if (window.pdfMake && window.pdfMake.createPdf) return;
+  // load pdfmake core library
+  const pdfMakeUrls = [
+    'https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js',
+    'https://unpkg.com/pdfmake@0.2.7/build/pdfmake.min.js'
+  ];
+  for (const url of pdfMakeUrls){
+    try{
+      await loadScriptOnce(url);
+      if (window.pdfMake && window.pdfMake.createPdf) break;
+    }catch(_){ /* try next */ }
+  }
+  // load virtual file system with fonts
+  const vfsUrls = [
+    'https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js',
+    'https://unpkg.com/pdfmake@0.2.7/build/vfs_fonts.js'
+  ];
+  for (const url of vfsUrls){
+    try{
+      await loadScriptOnce(url);
+      if (window.pdfMake && window.pdfMake.vfs) break;
+    }catch(_){ /* try next */ }
+  }
+  // After vfs is loaded, define fonts explicitly so that diacritics (e.g., Polish characters) are preserved in the PDF.
+  if (window.pdfMake && window.pdfMake.vfs) {
+    // Define the Roboto font mapping to use the embedded fonts from vfs_fonts.js
+    window.pdfMake.fonts = {
+      Roboto: {
+        normal: 'Roboto-Regular.ttf',
+        bold: 'Roboto-Medium.ttf',
+        italics: 'Roboto-Italic.ttf',
+        bolditalics: 'Roboto-MediumItalic.ttf'
+      }
+    };
+  }
+}
+
+// Export current rows and summary to a nicely formatted PDF
+async function exportToPdf(){
+  try{
+    await ensurePdfMake();
+    const now = new Date();
+    const dt = now.toLocaleString('pl-PL', { hour12:false });
+    // prepare lines table data
+    const bodyLines = rows.map(r => {
+      const tys = Math.floor(NF(r.kwota)/1000);
+      const ptsLine = tys * (r.rate || 0);
+      const valLine = ptsLine * pointValue;
+      return [
+        r.indeks,
+        r.marka,
+        truncate(r.nazwa),
+        fmtPLN.format(r.kwota),
+        fmtINT.format(ptsLine),
+        fmtPLN.format(valLine)
+      ];
+    });
+    const tableLines = {
+      table: {
+        headerRows: 1,
+        widths: ['*','*','*','auto','auto','auto'],
+        body: [
+          ['Indeks','Marka','Produkt','Kwota netto [PLN]','Punkty','Nagroda [PLN]'],
+          ...bodyLines
+        ]
+      },
+      layout: 'lightHorizontalLines',
+      fontSize: 8
+    };
+    // prepare summary data
+    const sum = calcSummary();
+    const ePts = Math.floor(NF(ecom) / 1000) * NF(ecomRate);
+    const eVal = ePts * pointValue;
+    const bodySum = sum.map(b => [
+      b.marka,
+      fmtPLN.format(b.kwota),
+      fmtINT.format(b.pts),
+      fmtPLN.format(b.val)
+    ]);
+    bodySum.push(['Ecommerce', fmtPLN.format(NF(ecom)), fmtINT.format(ePts), fmtPLN.format(eVal)]);
+    bodySum.push(['SUMA', '', fmtINT.format(sum.reduce((s,b) => s + b.pts, 0) + ePts), fmtPLN.format(sum.reduce((s,b) => s + b.val, 0) + eVal)]);
+    const tableSummary = {
+      table: {
+        headerRows: 1,
+        widths: ['*','auto','auto','auto'],
+        body: [
+          ['Marka','Suma kwot [PLN]','Punkty marki','Nagroda [PLN]'],
+          ...bodySum
+        ]
+      },
+      layout: 'lightHorizontalLines',
+      fontSize: 8
+    };
+    const docDefinition = {
+      content: [
+        { text: 'SIGUP Kalkulator', style: 'header', alignment: 'center' },
+        { text: dt, style: 'subheader', alignment: 'center', margin: [0,0,0,10] },
+        tableLines,
+        { text: 'Podsumowanie', style: 'subheader', margin: [0,10,0,4] },
+        tableSummary
+      ],
+      styles: {
+        header: { fontSize: 16, bold: true },
+        subheader: { fontSize: 10, italics: true }
+      },
+      defaultStyle: { font: 'Roboto', fontSize: 9 }
+    };
+    const iso = now.toISOString().replace(/[:.]/g,'-');
+    const filename = `SIGUP_${iso.slice(0,10)}_${iso.slice(11,16).replace('-', '')}.pdf`;
+    window.pdfMake.createPdf(docDefinition).download(filename);
+  }catch(err){
+    console.error(err);
+    toast('Błąd eksportu PDF: ' + (err && err.message ? err.message : err));
+  }
+}
+
+// Load external script only once. Reuses existing <script data-src> if present.
+function loadScriptOnce(src){
+  return new Promise((resolve,reject)=>{
+    const s = document.querySelector('script[data-src="'+src+'"]');
+    if(s){
+      // if already loaded library, resolve immediately
+      if(window.XLSX){ resolve(); return; }
+      s.addEventListener('load', () => resolve());
+      s.addEventListener('error', () => reject());
+      return;
+    }
+    const el = document.createElement('script');
+    el.dataset.src = src;
+    el.src = src;
+    el.async = true;
+    el.onload = () => resolve();
+    el.onerror = () => reject();
+    document.head.appendChild(el);
+  });
+}
+
+/* Init */
+(function init(){
+  try{
+    fetch('wsad.json?v=' + new Date().toISOString().slice(0,10), {cache:'no-store'}).then(async r=>{
+      if (r.ok){ const data=await r.json(); applyWsad(data, 'WSAD z wsad.json'); }
+      else { applyWsad(window.builtinWsad || [], 'Brak wsad.json'); }
+    }).catch(()=>applyWsad(window.builtinWsad || [], 'WSAD awaryjny'));
+  }catch(_){ applyWsad([], 'WSAD awaryjny'); }
+  const m=location.hash.match(/#state=([^&]+)/);
+  if(m){ try{ const obj=JSON.parse(decodeURIComponent(escape(atob(m[1])))); rows=Array.isArray(obj.rows)? obj.rows.map(r=>({id:nextId++, indeks:r.indeks, marka:r.marka, nazwa:r.nazwa||'', rate:NF(r.rate), kwota:NF(r.kwota)})):[]; ecom=NF(obj.ecom||0); ecomRate=NF(obj.ecomRate||10); pointValue=NF(obj.pointValue||0.2); modeBrand=!!obj.modeBrand; }catch(_){} }
+  else { restoreState(); }
+  // no mode toggle element; always sum per marka
+  syncInputs(); renderAllRows(); recalc();
+})();
+initVoiceAdvisor();
+</script>
+</body>
+</html>
